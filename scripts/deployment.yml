@@ -1,0 +1,55 @@
+# Write Kubernetes Deployment Script
+# Setting the API version to use for the deployment.
+apiVersion: apps/v1
+# Setting resource type as a Deployment
+kind: Deployment
+metadata:
+# Defining the book-catalog as a name to this deployment
+  name: book-catalog
+spec:
+# Setting that the one pod of application should be running
+  replicas: 1
+  selector:
+    matchLabels:
+    # To define as book-catalog to match pods by kubernetes for this deployment
+      app: book-catalog
+  template:
+    metadata:
+      labels:
+      # Defines the labels for the pods created by this deployment.
+        app: book-catalog
+    spec:
+    # To set the container specifications
+      containers: 
+      # Setting the name of container to book-catalog
+      - name: book-catalog
+      # Defining container image name as bookimage and version 1.
+        image: booknewimage:1
+        # Defining container port to 8000
+        ports:
+        - containerPort: 8000
+        # Avoid pulling the image as we're using docker-desktop local built image
+        imagePullPolicy: Never
+        # Important specifications to verify and authenticate the container
+        env:
+        # Setting the name as db url defined by pur python file
+        - name: DATABASE_URL
+        # Setting the value as external url code obtained from creating new postgre sql.
+          value: "postgresql://book_sql_okc8_user:3ORIQWpj2dlnftYRGLn7ERd8FghV9UYo@dpg-crhokdtumphs73c6o9q0-a.oregon-postgres.render.com/book_sql_okc8"
+---
+# Specifying the api version for service resource type
+apiVersion: v1
+kind: Service
+metadata:
+# Specifying book-catalog name to this service
+  name: book-catalog
+spec:
+  selector:
+    app: book-catalog
+  type: NodePort
+  ports:
+  # To map port:8000 on the application pod to below specified 8000 port of the service.
+    - protocol: TCP
+      port: 8000
+      targetPort: 8000
+      nodePort: 30000
